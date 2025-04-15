@@ -20,6 +20,7 @@ class FritzBox{
 		$this->debug = $debug;
 		$this->sid = false;
 		$this->db = false;
+		$this->version = "0.0.2";
 	}
 
 	/*
