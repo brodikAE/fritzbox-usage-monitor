@@ -113,7 +113,6 @@ class FritzBox{
 	function initDatabase() {
 		$db = new SQLite3($this->db_file);
 		$db->busyTimeout(5000);
-		$db->exec("PRAGMA journal_mode = WAL;");
 		$db->exec("CREATE TABLE IF NOT EXISTS all_stats (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			mac TEXT NOT NULL,
