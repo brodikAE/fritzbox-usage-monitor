@@ -3,7 +3,7 @@
 /*
 	FritzBox webAPI php
 	written by brodikAE
-	v.0.0.1
+	v.0.0.2
 */
 
 class FritzBox{
