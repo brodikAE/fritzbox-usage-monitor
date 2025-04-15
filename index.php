@@ -34,12 +34,18 @@ function getStats($db, $mac, $period) {
 				ORDER BY period ASC LIMIT 144";
 		break;
 		case 'hourly':
-			$query = "SELECT strftime('%Y-%m-%d %H:00', timestamp) AS period, 
-					SUM(received_bytes) AS received, SUM(sent_bytes) AS sent 
-				FROM all_stats 
-				WHERE mac = :mac 
-				GROUP BY strftime('%Y-%m-%d %H', timestamp) 
-				ORDER BY period ASC LIMIT 24";
+			$query = "SELECT * 
+				FROM (
+					SELECT strftime('%Y-%m-%d %H:00', timestamp) AS period, 
+						SUM(received_bytes) AS received,
+						SUM(sent_bytes) AS sent 
+					FROM all_stats 
+					WHERE mac = :mac 
+					GROUP BY strftime('%Y-%m-%d %H', timestamp) 
+					ORDER BY period DESC 
+					LIMIT 24
+					)
+				ORDER BY period ASC";
 		break;
 		case 'daily':
 			$query = "SELECT strftime('%Y-%m-%d', timestamp) AS period, 
