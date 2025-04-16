@@ -24,44 +24,62 @@ function getStats($db, $mac, $period) {
 
 	switch ($period) {
 		case '10minutes':
-			$query = "SELECT strftime('%Y-%m-%d %H:%M:00', 
-					datetime((cast(strftime('%s', timestamp) AS integer) / 600 * 600), 'unixepoch')) AS period, 
-					SUM(received_bytes) AS received, SUM(sent_bytes) AS sent 
-				FROM all_stats 
-				WHERE mac = :mac AND timestamp >= datetime('now', '-24 hours') 
-				GROUP BY strftime('%Y-%m-%d %H:%M', 
-					datetime((cast(strftime('%s', timestamp) AS integer) / 600 * 600), 'unixepoch')) 
-				ORDER BY period ASC LIMIT 144";
+			$query = "SELECT * 
+				FROM (
+					SELECT strftime('%Y-%m-%d %H:%M:00', 
+						datetime((cast(strftime('%s', timestamp) AS integer) / 600 * 600), 'unixepoch')) AS period, 
+						SUM(received_bytes) AS received, 
+						SUM(sent_bytes) AS sent 
+					FROM all_stats 
+					WHERE mac = :mac AND timestamp >= datetime('now', '-24 hours') 
+					GROUP BY strftime('%Y-%m-%d %H:%M', 
+						datetime((cast(strftime('%s', timestamp) AS integer) / 600 * 600), 'unixepoch')) 
+					ORDER BY period DESC 
+					LIMIT 144
+					)
+				ORDER BY period ASC";
 		break;
 		case 'hourly':
 			$query = "SELECT * 
 				FROM (
 					SELECT strftime('%Y-%m-%d %H:00', timestamp) AS period, 
-						SUM(received_bytes) AS received,
+						SUM(received_bytes) AS received, 
 						SUM(sent_bytes) AS sent 
 					FROM all_stats 
 					WHERE mac = :mac 
 					GROUP BY strftime('%Y-%m-%d %H', timestamp) 
 					ORDER BY period DESC 
 					LIMIT 24
-					)
+				)
 				ORDER BY period ASC";
 		break;
 		case 'daily':
-			$query = "SELECT strftime('%Y-%m-%d', timestamp) AS period, 
-					SUM(received_bytes) AS received, SUM(sent_bytes) AS sent 
-				FROM all_stats 
-				WHERE mac = :mac 
-				GROUP BY strftime('%Y-%m-%d', timestamp) 
-				ORDER BY period ASC LIMIT 30";
+			$query = "SELECT * 
+				FROM (
+					SELECT strftime('%Y-%m-%d', timestamp) AS period, 
+						SUM(received_bytes) AS received, 
+						SUM(sent_bytes) AS sent 
+					FROM all_stats 
+					WHERE mac = :mac 
+					GROUP BY strftime('%Y-%m-%d', timestamp) 
+					ORDER BY period DESC 
+					LIMIT 30
+				)
+				ORDER BY period ASC";
 		break;
 		case 'weekly':
-			$query = "SELECT strftime('%Y-%W', timestamp) AS period, 
-					SUM(received_bytes) AS received, SUM(sent_bytes) AS sent 
-				FROM all_stats 
-				WHERE mac = :mac 
-				GROUP BY strftime('%Y-%W', timestamp) 
-				ORDER BY period ASC LIMIT 12";
+			$query = "SELECT * 
+				FROM (
+					SELECT strftime('%Y-%W', timestamp) AS period, 
+						SUM(received_bytes) AS received, 
+						SUM(sent_bytes) AS sent 
+					FROM all_stats 
+					WHERE mac = :mac 
+					GROUP BY strftime('%Y-%W', timestamp) 
+					ORDER BY period DESC 
+					LIMIT 12
+				)
+				ORDER BY period ASC";
 		break;
 		case 'monthly':
 			$query = "SELECT period, SUM(received) AS received, SUM(sent) AS sent 
