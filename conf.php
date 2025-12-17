@@ -1,5 +1,11 @@
 <?php
 
+/*
+	FritzBox configuration file
+	written by brodikAE
+	v.0.0.2
+*/
+
 $FRITZ = [
     'ip' => "192.168.178.1",
     'password' => "mypassword",

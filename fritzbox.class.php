@@ -3,7 +3,7 @@
 /*
 	FritzBox webAPI php
 	written by brodikAE
-	v.0.0.1
+	v.0.0.2
 */
 
 class FritzBox{
@@ -74,7 +74,7 @@ class FritzBox{
 	*/
 
 	function getNetworkUsage() {
-		$url = "http://" . $this->ip . "/api/v0/monitor/macaddrs/subset0000";
+		$url = "http://" . $this->ip . "/api/v0/monitor/online/0";
 		if ($this->debug) echo "Tentativo di connessione a: $url<br>";
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -112,6 +112,7 @@ class FritzBox{
 
 	function initDatabase() {
 		$db = new SQLite3($this->db_file);
+		$db->busyTimeout(5000);
 		$db->exec("CREATE TABLE IF NOT EXISTS all_stats (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			mac TEXT NOT NULL,
@@ -137,25 +138,32 @@ class FritzBox{
 	*/
 
 	function saveDataToDatabase($data) {
-		$startTime = strtotime($data[0]['timestamp']);
-		$receivedData = [];
-		$sentData = [];
-
-		foreach ($data as $entry) {
-			if (!isset($entry['dataSourceName'])) continue;
-			$mac = substr($entry['dataSourceName'], 7);
-			if (strpos($entry['dataSourceName'], 'rcv_') === 0) {
-				$receivedData[$mac] = $entry['measurements'];
-			} elseif (strpos($entry['dataSourceName'], 'snd_') === 0) {
-				$sentData[$mac] = $entry['measurements'];
-			}
+		if (!isset($data['devices']) || !isset($data['lastSampleTime']) || !isset($data['sampleInterval'])) {
+			if ($this->debug) echo "Struttura dati non valida o mancante\n";
+			return;
 		}
 
-		foreach ($receivedData as $mac => $measurements) {
-			if (!isset($sentData[$mac])) continue;
-			foreach ($measurements as $i => $received) {
-				$time = date('Y-m-d H:i:s', $startTime + ($i * 5));
-				$sent = $sentData[$mac][$i];
+		$devices = $data['devices'];
+		$lastSampleTime = $data['lastSampleTime'];
+		$intervalSec = $data['sampleInterval'] / 1000;
+
+		foreach ($devices as $device) {
+			$uid = $device['UID'] ?? '';
+			if (empty($uid) || strpos($uid, 'mac') !== 0) continue;
+
+			$mac = substr($uid, 3);
+			$upstream = $device['upstream'] ?? [];
+			$downstream = $device['downstream'] ?? [];
+
+			$numSamples = min(count($upstream), count($downstream));
+
+			for ($i = 0; $i < $numSamples; $i++) {
+				$offset = ($numSamples - 1 - $i) * $intervalSec;
+				$time = date('Y-m-d H:i:s', $lastSampleTime - $offset);
+
+				$sent = $upstream[$i] ?? 0;
+				$received = $downstream[$i] ?? 0;
+
 				$stmt = $this->db->prepare("INSERT OR IGNORE INTO all_stats (mac, timestamp, received_bytes, sent_bytes) VALUES (:mac, :timestamp, :received, :sent)");
 				$stmt->bindValue(':mac', $mac, SQLITE3_TEXT);
 				$stmt->bindValue(':timestamp', $time, SQLITE3_TEXT);

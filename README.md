@@ -16,3 +16,5 @@ For example by adding this code with the "contab -e" command:
 ```
 */5 * * * * cd /var/www/fritzbox && /usr/bin/php scan.php
 ```
+## Version v.0.0.2
+Updated scriprs for working with FRITZ!OS version 8.21

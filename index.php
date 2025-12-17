@@ -1,14 +1,9 @@
 <?php
 
 /*
-+-----------------------------------------------------------------------+
-|									|
-|	> fritzbox usage monitor					|
-|	> Written By brodikAE						|
-|	> Date started: 13.04.2025					|
-|	> version: 0.0.1 (13.04.2025)					|
-|									|
-+-----------------------------------------------------------------------+
+	FritzBox usage monitor
+	written by brodikAE
+	v.0.0.2
 */
 
 ini_set('error_reporting', E_ALL);
