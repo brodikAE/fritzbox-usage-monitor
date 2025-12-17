@@ -1,7 +1,7 @@
 <?php
 
 /*
-	FritzBox webAPI php
+	FritzBox usage monitor
 	written by brodikAE
 	v.0.0.2
 */
